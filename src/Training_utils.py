@@ -10,18 +10,18 @@ class TrainingHelper:
         self.test_set_scaled = test_set_scaled
 
 
-    def generate_tensors(self):
+    def generate_tensors(self,hidden_size):
 
-        X_train = torch.empty((len(self.train_set_scaled)-self.n_history, self.n_history, 3))
+        X_train = torch.empty((len(self.train_set_scaled)-self.n_history, self.n_history, hidden_size))
 
 
         y_train = torch.empty(len(self.train_set_scaled)-self.n_history)
 
-        X_val = torch.empty((len(self.val_set_scaled)-self.n_history, self.n_history, 3))
+        X_val = torch.empty((len(self.val_set_scaled)-self.n_history, self.n_history, hidden_size))
         y_val = torch.empty(len(self.val_set_scaled)-self.n_history)
 
 
-        X_test = torch.empty((len(self.test_set_scaled)-self.n_history, self.n_history, 3))
+        X_test = torch.empty((len(self.test_set_scaled)-self.n_history, self.n_history, hidden_size))
         y_test = torch.empty(len(self.test_set_scaled)-self.n_history)
 
         for k in range(0,len(self.train_set_scaled)-self.n_history):
@@ -42,10 +42,10 @@ class TrainingHelper:
             "test": (X_test,y_test)
         }
 
-    def generate_dataloader(self,batch_size):
-        X_train,y_train = self.generate_tensors()['train']
-        X_val,y_val = self.generate_tensors()['val']
-        X_test,y_test = self.generate_tensors()['test']
+    def generate_dataloader(self,batch_size,hidden_size):
+        X_train,y_train = self.generate_tensors(hidden_size)['train']
+        X_val,y_val = self.generate_tensors(hidden_size)['val']
+        X_test,y_test = self.generate_tensors(hidden_size)['test']
 
         train = TensorDataset(X_train, y_train)
         val = TensorDataset(X_val, y_val)

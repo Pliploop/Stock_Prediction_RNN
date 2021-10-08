@@ -29,13 +29,14 @@ class RnnTrainer:
         self.optimizer.zero_grad()
         return loss.item()
 
-    def train(self, train_loader, val_loader, batch_size, n_epochs, n_features=1):
+    def train(self, train_loader, val_loader, batch_size, n_epochs,hidden_size, n_features=1):
         # model_path = f'models/{self.model}_{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
+        self.hidden_size = hidden_size
         t = trange(1, n_epochs + 1)
         for epoch in t:
             batch_losses = []
             for x_batch, y_batch in train_loader:
-                x_batch = x_batch.view([batch_size, 3, self.n_history]).to(self.device)
+                x_batch = x_batch.view([batch_size, hidden_size, self.n_history]).to(self.device)
                 y_batch = y_batch.to(self.device)
                 loss = self.train_step(x_batch, y_batch)
                 batch_losses.append(loss)
@@ -61,12 +62,13 @@ class RnnTrainer:
 
         # torch.save(self.model.state_dict(), model_path)
 
-    def evaluate(self, test_loader, batch_size=1, n_features=1):
+    def evaluate(self, test_loader,batch_size=1, n_features=1):
+        hidden_size = self.hidden_size
         with torch.no_grad():
             predictions = []
             values = []
             for x_test, y_test in test_loader:
-                x_test = x_test.view([batch_size, 3, self.n_history]).to(self.device)
+                x_test = x_test.view([batch_size, hidden_size, self.n_history]).to(self.device)
                 y_test = y_test.to(self.device)
                 self.model.eval()
                 yhat = self.model(x_test)
@@ -110,7 +112,7 @@ class RnnTrainer:
 
 
 class VanillaRNN(nn.Module):
-    def __init__(self, input_dim=3, hidden_dim=1, num_layers=1, output_dim=1, dropout_prob=.3):
+    def __init__(self, input_dim=3, hidden_dim=1, num_layers=1, output_dim=1, dropout_prob=.3,bidirectional = False):
         super(VanillaRNN, self).__init__()
 
         # Defining the number of layers and the nodes in each layer
@@ -119,7 +121,7 @@ class VanillaRNN(nn.Module):
 
         # RNN layers
         self.rnn = nn.RNN(
-            input_dim, hidden_dim, num_layers, batch_first=True, dropout=dropout_prob
+            input_dim, hidden_dim, num_layers, batch_first=True, dropout=dropout_prob, bidirectional = bidirectional
         )
         self.fc = nn.Linear(hidden_dim, output_dim)
         
@@ -133,7 +135,7 @@ class VanillaRNN(nn.Module):
 
 
 class LSTMModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim, num_layers, output_dim, dropout_prob):
+    def __init__(self, input_dim, hidden_dim, num_layers, output_dim, dropout_prob,bidirectional=False):
         super(LSTMModel, self).__init__()
 
         self.hidden_dim = hidden_dim
@@ -141,7 +143,7 @@ class LSTMModel(nn.Module):
 
 
         self.lstm = nn.LSTM(
-            input_dim, hidden_dim, num_layers, batch_first=True, dropout=dropout_prob
+            input_dim, hidden_dim, num_layers, batch_first=True, dropout=dropout_prob,bidirectional=bidirectional
         )
         self.fc = nn.Linear(hidden_dim, output_dim)
 
@@ -156,14 +158,14 @@ class LSTMModel(nn.Module):
         return out
 
 class GRUModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim, num_layers, output_dim, dropout_prob):
+    def __init__(self, input_dim, hidden_dim, num_layers, output_dim, dropout_prob,bidirectional=False):
         super(GRUModel, self).__init__()
 
         self.num_layers = num_layers
         self.hidden_dim = hidden_dim
 
         self.gru = nn.GRU(
-            input_dim, hidden_dim, num_layers, batch_first=True, dropout=dropout_prob
+            input_dim, hidden_dim, num_layers, batch_first=True, dropout=dropout_prob,bidirectional=bidirectional
         )
 
         self.fc = nn.Linear(hidden_dim, output_dim)
