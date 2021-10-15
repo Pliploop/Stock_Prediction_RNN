@@ -30,7 +30,6 @@ class RnnTrainer:
         return loss.item()
 
     def train(self, train_loader, val_loader, batch_size, n_epochs,hidden_size, n_features=1):
-        # model_path = f'models/{self.model}_{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
         self.hidden_size = hidden_size
         t = trange(1, n_epochs + 1)
         for epoch in t:
@@ -57,10 +56,7 @@ class RnnTrainer:
 
             
             t.set_description(f"[{epoch}/{n_epochs}] Training loss: {training_loss:.4f}\t Validation loss: {validation_loss:.4f}")
-            t.refresh() # to show immediately the update
-
-
-        # torch.save(self.model.state_dict(), model_path)
+            t.refresh()
 
     def evaluate(self, test_loader,batch_size=1, n_features=1):
         hidden_size = self.hidden_size
@@ -77,13 +73,18 @@ class RnnTrainer:
 
         return predictions, values
 
-    def plot_losses(self):
-        plt.plot(self.train_losses, label="Training loss")
-        plt.plot(self.val_losses, label="Validation loss")
-        plt.legend()
-        plt.title("Losses")
-        plt.show()
-        plt.close()
+    def plot_losses(self,ax=None):
+        if ax is None:
+            plt.plot(self.train_losses, label="Training loss")
+            plt.plot(self.val_losses, label="Validation loss")
+            plt.legend()
+            plt.title("Losses")
+            plt.show()
+            plt.close()
+        else:
+            ax.plot(self.train_losses, label="Training loss")
+            ax.plot(self.val_losses, label="Validation loss")
+            ax.legend()
 
     def inverse_transform(self,scaler, df, columns):
         for col in columns:
